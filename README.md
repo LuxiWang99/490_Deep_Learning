@@ -1,4 +1,4 @@
-# 490_Deep_learning
+# 490_Deep_Learning
 Project files for 490 final project
 
 
