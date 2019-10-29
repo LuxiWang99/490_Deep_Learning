@@ -1,7 +1,9 @@
 # CSE 490G1 Deep Learning
 
 Project Files for CSE 490G Final Project
+
 Cailin Winston, Luxi Wang, Mitchell Estberg
+
 cailinw, louis99, estbergm @ uw (dot) edu
 
 Any .midi or .wav files are in /data
