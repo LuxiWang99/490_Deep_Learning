@@ -3,6 +3,7 @@ PianoMidi/
 *.wav
 *.csv
 data/
+musicnet/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
