@@ -9,7 +9,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, LSTM
 
-class MusicSentencesDataGenerator(keras.utils.Sequence):
+class SentenceDataLoader(keras.utils.Sequence):
 
     '''
     song_IDs : np.ndarray
@@ -38,7 +38,7 @@ class MusicSentencesDataGenerator(keras.utils.Sequence):
         self.SR = SR
         self.data_dim = (sentence_length // word_length, word_length * SR)
         self.shuffle = shuffle
-        self.labels2ind = list(set(labels.values()))
+        self.labels2ind = ["Bar", "Cla", "Rom", "Mod"]
         self.on_epoch_end()
         
     def __len__(self):
@@ -62,7 +62,7 @@ class MusicSentencesDataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples' # X : (batch_size, num_words, word_length)
         # Initialization
         X = np.empty((self.batch_size, *self.data_dim))
-        y = np.empty((self.batch_size), dtype=int)
+        y = np.empty((self.batch_size), dtype=object)
 
         # Generate data
         for i, ID in enumerate(song_IDs_temp):
@@ -77,6 +77,12 @@ class MusicSentencesDataGenerator(keras.utils.Sequence):
 
         return X, y
     
+    '''
+    Returns the data dimension
+    '''
+    def data_dim(self):
+        return data_dim 
+
     def on_epoch_end(self):
         'Updates indexes after each epoch'
         self.indexes = np.arange(len(self.song_IDs))
