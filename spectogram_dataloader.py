@@ -62,13 +62,13 @@ class SpectogramDataLoader(keras.utils.Sequence):
         'Generates data containing batch_size samples' # X : (batch_size, num_words, word_length)
         # Initialization
         X = np.empty((self.batch_size, *self.data_dim))
-        y = np.empty((self.batch_size), dtype=int)
+        y = np.empty((self.batch_size), dtype=object)
 
         # Generate data
         for i, ID in enumerate(song_IDs_temp):
             # Store sample
             x_ = np.load(self.data_path + str(ID) + '.npy')
-            X[i,] = np.log((np.abs(librosa.stft(x_, hop_length=2048, win_length=512))**2) + sys.float_info.epsilon)
+            X[i,] = np.log((np.abs(librosa.stft(x_, hop_length=512, win_length=2048))**2) + sys.float_info.epsilon)
 
             # Store class
             y[i] = self.labels[ID]

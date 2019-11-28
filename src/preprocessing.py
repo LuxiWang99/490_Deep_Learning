@@ -55,43 +55,43 @@ def main():
     labels = {}
 
     # First Process FMA
-    # filename = "track_info.pkl"
-    # with open(filename, 'rb') as handle:
-    #     fma_info = pickle.load(handle)
+    filename = "track_info.pkl"
+    with open(filename, 'rb') as handle:
+        fma_info = pickle.load(handle)
 
-    # fma_info = fma_info[pd.notnull(fma_info['track', 'period'])]
+    fma_info = fma_info[pd.notnull(fma_info['track', 'period'])]
 
-    # for index, row in fma_info.iterrows():
-    #     filename = str(index)
-    #     period = row['track', 'period']
-    #     if (period != "Ren"):
-    #         print("Processing: " + filename)
-    #         while(len(filename) < 6):
-    #             filename = str(0) + filename  
-    #         file_dir = filename[:-3]
+    for index, row in fma_info.iterrows():
+        filename = str(index)
+        period = row['track', 'period']
+        if (period != "Ren"):
+            print("Processing: " + filename)
+            while(len(filename) < 6):
+                filename = str(0) + filename  
+            file_dir = filename[:-3]
 
-    #         src = Path(path_to_fma_mp3_files, file_dir, filename + '.mp3')
-    #         dst = str(src)[:-4] + '.wav'
+            src = Path(path_to_fma_mp3_files, file_dir, filename + '.mp3')
+            dst = str(src)[:-4] + '.wav'
 
-    #         sound = AudioSegment.from_mp3(src)
-    #         wav_file = open(dst,'wb')
-    #         sound.export(wav_file, format="wav")
-    #         wav_file.close()
+            sound = AudioSegment.from_mp3(src)
+            wav_file = open(dst,'wb')
+            sound.export(wav_file, format="wav")
+            wav_file.close()
 
-    #         print("   Made .wav file.")
+            print("   Made .wav file.")
 
-    #         x, sr = librosa.load(dst, sr=SR)
-    #         sentences, label = train_wav2sentences(x, period)
-    #         for i in range(len(sentences)):
-    #             data_file = str(next_id) + '.npy'
-    #             data_file_dst = path_to_data_train / data_file
-    #             np.save(data_file_dst, sentences[i])
-    #             train_song_IDs.append(next_id)
-    #             labels[next_id] = label[i]
-    #             next_id += 1
-    #             print("   Made " + data_file)
-    #     else:
-    #         print("Will not process rennaissance music: " + filename)
+            x, sr = librosa.load(dst, sr=SR)
+            sentences, label = train_wav2sentences(x, period)
+            for i in range(len(sentences)):
+                data_file = str(next_id) + '.npy'
+                data_file_dst = path_to_data_train / data_file
+                np.save(data_file_dst, sentences[i])
+                train_song_IDs.append(next_id)
+                labels[next_id] = label[i]
+                next_id += 1
+                print("   Made " + data_file)
+        else:
+            print("Will not process rennaissance music: " + filename)
 
     # Now process music_net_data 
     composer_to_period = {
