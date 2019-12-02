@@ -6,8 +6,6 @@
 
 import keras
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, LSTM
 
 class SentenceDataLoader(keras.utils.Sequence):
 
@@ -22,7 +20,7 @@ class SentenceDataLoader(keras.utils.Sequence):
         Batch size
     sentence_length : int (default 30)
         Number of seconds each data sample (.npy file) represents
-    word_length : int (default 4)
+    word_length : int (default 5)
         Number of seconds each word represents; each sentence is split into words of this length
     SR : int (default 44100)
         Sample rate; number of values per second

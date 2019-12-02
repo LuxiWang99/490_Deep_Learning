@@ -37,7 +37,7 @@ class SpectogramDataLoader(keras.utils.Sequence):
         self.win_length = win_length
         self.SR = SR
         self.shuffle = shuffle
-        self.labels2ind = list(set(labels.values()))
+        self.labels2ind = ["Bar", "Cla", "Rom", "Mod"]
         self.set_data_dim()
         self.on_epoch_end()
 
@@ -68,7 +68,7 @@ class SpectogramDataLoader(keras.utils.Sequence):
         for i, ID in enumerate(song_IDs_temp):
             # Store sample
             x_ = np.load(self.data_path + str(ID) + '.npy')
-            X[i,] = np.log((np.abs(librosa.stft(x_, hop_length=512, win_length=2048))**2) + sys.float_info.epsilon)
+            X[i,] = np.log((np.abs(librosa.stft(x_, hop_length=self.hop_length, win_length=self.win_length))**2) + sys.float_info.epsilon)
 
             # Store class
             y[i] = self.labels[ID]
