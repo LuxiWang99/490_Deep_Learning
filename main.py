@@ -84,7 +84,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
 
         self.acc.append(test(self.model,self.data,self.label))
         self.result["train_acc"].append(logs["acc"])
-        self.result["test_acc"].append(logs[self.acc[-1])
+        self.result["test_acc"].append(logs[self.acc[-1]])
         self.result["train_loss"].append(logs["loss"])
         with open('result.pickle', 'wb') as handle:
             pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -111,12 +111,6 @@ def main(LENGTH=3 * 44100):
     checkpoint_dir = './training_checkpoints'
     # Name of the checkpoint files
     checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
-
-    callbacks = [
-        tf.keras.callbacks.TensorBoard(log_dir='./logs'),
-        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
-                                        save_weights_only=True)
-    ]
 
     train_generator = SpectogramDataLoader(train_ids, labels, data_path + os.sep + 'train/', 
     batch_size=64)
