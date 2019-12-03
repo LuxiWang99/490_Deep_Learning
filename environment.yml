@@ -1,3 +1,4 @@
+name: 490F
 channels:
   - conda-forge
   - pytorch
@@ -10,12 +11,14 @@ dependencies:
   - tqdm=4.32.1
   - numpy==1.17.2
   - opencv=3.4.2
-  - librosa=0.7.1=py_0
-  - jupyterlab=1.1.4=pyhf63ae98_0
-  - jupyterlab_server=1.0.6=py_0
-  - keras=2.3.1=py36_0
-  - keras-applications=1.0.8=py_1
-  - keras-preprocessing=1.1.0=py_0
+  - librosa=0.7.1
+  - jupyterlab=1.1.4
+  - jupyterlab_server=1.0.6
+  - keras=2.3.1
+  - keras-applications=1.0.8
+  - keras-preprocessing=1.1.0
   - pytorch
+  - tensorflow=1.13.2
   - torchvision
   - pytest
+  - gdown
