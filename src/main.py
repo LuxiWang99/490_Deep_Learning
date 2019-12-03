@@ -9,16 +9,17 @@ from keras.utils import multi_gpu_model
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, LSTM
+from keras.models import model_from_json
 import pickle 
 import os
 import librosa
 import matplotlib.pyplot as plt
+import sys
 
 from dataloaders import SpectogramDataLoader
 LENGTH=3 * 44100
 
 warnings.resetwarnings()
-
 
 def get_model():
     model = Sequential()
@@ -30,7 +31,7 @@ def get_model():
 
 def train(model, train_generator, test_data, EPOCHS=20):
     test_acc = MyCustomCallback(test_data[0], test_data[1])
-    train_info = model.fit_generator(generator=train_generator, epochs=EPOCHS, callbacks=[history])
+    train_info = model.fit_generator(generator=train_generator, epochs=EPOCHS, callbacks=[test_acc])
     return train_info.history, test_acc.acc
 
 def test(model, X_test, y_test):
@@ -80,16 +81,25 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
 
     def on_train_begin(self, logs={}):
         self.acc = []
-    def on_epoch_end(self, epoch, logs=None):
 
+    def on_epoch_end(self, epoch, logs=None):
         self.acc.append(test(self.model,self.data,self.label))
         self.result["train_acc"].append(logs["acc"])
         self.result["test_acc"].append(logs[self.acc[-1]])
         self.result["train_loss"].append(logs["loss"])
         with open('result.pickle', 'wb') as handle:
             pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # serialize model to JSON
+		model_json = model.to_json()
+		with open("model.json", "w") as json_file:
+		    json_file.write(model_json)
+		# serialize weights to HDF5
+		model.save_weights("model.h5")
+		print("Saved model to disk")
 
 def main(LENGTH=3 * 44100):
+    tf.debugging.set_log_device_placement(True)
+    
     pwd = os.getcwd()
     data_path = pwd + os.sep + 'data/'
     train_song_ids_file =  pwd + os.sep + 'data/train/song_ids.pkl'
@@ -158,16 +168,6 @@ def main(LENGTH=3 * 44100):
 
 # scores = model.evaluate(X_test, y_test, verbose=0)
 # print("Accuracy: %.2f%%" % (scores[1]*100))
-
-
-
-# serialize model to JSON
-# model_json = model.to_json()
-# with open("model.json", "w") as json_file:
-#     json_file.write(model_json)
-# # serialize weights to HDF5
-# model.save_weights("model.h5")
-# print("Saved model to disk")
 
 # from keras.models import model_from_json
 
