@@ -90,17 +90,17 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
         with open('result.pickle', 'wb') as handle:
             pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
         # serialize model to JSON
-		model_json = model.to_json()
-		with open("model.json", "w") as json_file:
-		    json_file.write(model_json)
-		# serialize weights to HDF5
-		model.save_weights("model.h5")
-		print("Saved model to disk")
+	model_json = model.to_json()
+	with open("model.json", "w") as json_file:
+	    json_file.write(model_json)
+	# serialize weights to HDF5
+	model.save_weights("model.h5")
+	print("Saved model to disk")
 
 def main(LENGTH=3 * 44100):
     tf.debugging.set_log_device_placement(True)
     
-    pwd = os.getcwd()
+    pwd = '/run/media/estbergm/GSINGH98'
     data_path = pwd + os.sep + 'data/'
     train_song_ids_file =  pwd + os.sep + 'data/train/song_ids.pkl'
     test_song_ids_file =  pwd + os.sep +'data/test/song_ids.pkl'
@@ -134,6 +134,9 @@ def main(LENGTH=3 * 44100):
         model = multi_gpu_model(model, NUM_GPUS)
     else:
         print("Only One GPU / CPU :(")
+
+    from tensorflow.python.client import device_lib
+    print(device_lib.list_local_devices())
 
     train_info, test_acc = train(model=model, train_generator=train_generator, test_data=(X_test, y_test), EPOCHS=10)
 
