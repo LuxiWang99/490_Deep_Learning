@@ -15,7 +15,7 @@ from subprocess import call
 # call(["conda","init","bash"])
 # call(["source", "~/miniconda2/etc/profile.d/conda.sh"])
 # call(["conda", "activate", "testenv"])
-call(["gdown", "https://drive.google.com/uc\?id\=1DH1XMch9zCg6I-2_ReK7gWMB__x-fzg8"])
+call(["gdown", "--id", "1DH1XMch9zCg6I-2_ReK7gWMB__x-fzg8", "-O", "data.zip"])
 call(["unzip", "data.zip"])
 from main import main
 
