@@ -23,3 +23,21 @@ We want to make a classifier for classical music. We will explore classifying fo
 There are hundreds of classical music .midi ([Musical Instrument Digital Interface](https://en.wikipedia.org/wiki/MIDI)) files available on the internet from various sources ([piano midi](http://www.piano-midi.de/), [maestro](https://magenta.tensorflow.org/datasets/maestro), [musedata](https://musedata.org/)) that we plan to use as data. Most of these are sorted by composer which we will have to then write a labeling script to derive period from composer. We will have to carefully handle some edge cases of composers that wrote accross multiple periods. We intend to convert the .midi files to .wav ([Waveform Audio File Format](https://en.wikipedia.org/wiki/WAV)) to a [Mel-frequency cepstrum](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum) (MFC) which can be classified as an image classification problem with the low-number of classes of classical music periods, or the higer-number of classes and more challenging problem of composers. 
 
 We would love to try a live-demo where we record some samples of performances and test our model on these recordings!
+
+# Set Up
+
+1. First clone this repo
+
+`git clone https://github.com/LuxiWang99/490_Deep_Learning.git`
+
+`cd 490_Deep_Learning`
+
+2. Next set up the environment. The environments name will be `testenv`
+
+`conda env create -f environment.yml`
+
+`conda activate testenv`
+
+3. Now, run our lab.py to download our data and run main
+
+`python src/lab.py`
