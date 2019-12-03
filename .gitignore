@@ -112,3 +112,5 @@ venv.bak/
 data.pickle
 .vscode/
 testing.ipynb
+
+data

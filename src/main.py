@@ -7,9 +7,9 @@ import pickle
 import os
 import librosa
 from spectogram_dataloader import SpectogramDataLoader
-
-
 LENGTH=3 * 44100
+
+
 def get_model():
     model = Sequential()
     model.add(LSTM(1025, input_shape=(1025, 259), return_sequences=True))
@@ -53,30 +53,28 @@ def get_test_data(test_dir, labels_dict):
                 y_test[x_id] = mappings.index(labels_dict[int(x_id)])
     return X_test, y_test
 
+def main(LENGTH=3 * 44100):
+    pwd = os.getcwd()
+    data_path = pwd + os.sep + 'data/'
+    train_song_ids_file =  pwd + os.sep + 'data/train/song_ids.pkl'
+    test_song_ids_file =  pwd + os.sep +'data/test/song_ids.pkl'
+    labels_file =  pwd + os.sep +'data/labels.pkl'
 
-pwd = os.getcwd()
-data_path = pwd + os.sep + 'data/'
-train_song_ids_file =  pwd + os.sep + 'data/train/song_ids.pkl'
-test_song_ids_file =  pwd + os.sep +'data/test/song_ids.pkl'
-labels_file =  pwd + os.sep +'data/labels.pkl'
+    with open(train_song_ids_file, 'rb') as handle:
+        train_ids = pickle.load(handle)
 
-with open(train_song_ids_file, 'rb') as handle:
-    train_ids = pickle.load(handle)
+    with open(test_song_ids_file, 'rb') as handle:
+        test_ids = pickle.load(handle)
 
-with open(test_song_ids_file, 'rb') as handle:
-    test_ids = pickle.load(handle)
+    with open(labels_file, 'rb') as handle:
+        labels = pickle.load(handle)
 
-with open(labels_file, 'rb') as handle:
-    labels = pickle.load(handle)
-
-
-
-train_generator = SpectogramDataLoader(train_ids, labels, data_path + os.sep + 'train/', 
-batch_size=64)
-print(train_generator.get_data_dim())
-X_test, y_test = get_test_data(test_dir=data_path + os.sep + 'test/', labels_dict=labels)
-model = get_model()
-train(model, train_generator)
+    train_generator = SpectogramDataLoader(train_ids, labels, data_path + os.sep + 'train/', 
+    batch_size=64)
+    print(train_generator.get_data_dim())
+    X_test, y_test = get_test_data(test_dir=data_path + os.sep + 'test/', labels_dict=labels)
+    model = get_model()
+    train(model, train_generator)
 # acc = test(model, X_test, y_test)
 
 # print("Accuracy: %.2f%%" % (acc*100))
