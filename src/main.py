@@ -12,14 +12,13 @@ from keras.layers import Dense, Activation, Flatten, LSTM
 import pickle 
 import os
 import librosa
-<<<<<<< HEAD
-from spectogram_dataloader import SpectogramDataLoader
-LENGTH=3 * 44100
-=======
+import matplotlib.pyplot as plt
+
 from dataloaders import SpectogramDataLoader
->>>>>>> a53b98e1933be046fdf14e989252af01c157f09a
+LENGTH=3 * 44100
 
 warnings.resetwarnings()
+
 
 def get_model():
     model = Sequential()
@@ -29,8 +28,10 @@ def get_model():
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
-def train(model, train_generator, EPOCHS=20):
-    model.fit_generator(generator=train_generator, epochs=EPOCHS)
+def train(model, train_generator, test_data, EPOCHS=20):
+    test_acc = MyCustomCallback(test_data[0], test_data[1])
+    train_info = model.fit_generator(generator=train_generator, epochs=EPOCHS, callbacks=[history])
+    return train_info.history, test_acc.acc
 
 def test(model, X_test, y_test):
     num_corr = 0
@@ -45,9 +46,9 @@ def test(model, X_test, y_test):
         predict_label = np.argmax(counts)
         if predict_label == label:
             num_corr += 1
-            print("right! prediction: " + str(predict_label) + ", label: " + str(label))
-        else:
-            print("wrong! prediction: " + str(predict_label) + ", label: " + str(label))
+            # print("right! prediction: " + str(predict_label) + ", label: " + str(label))
+        # else:
+        #     print("wrong! prediction: " + str(predict_label) + ", label: " + str(label))
     return float(num_corr) / len(X_test)
 
 def get_test_data(test_dir, labels_dict):
@@ -64,61 +65,99 @@ def get_test_data(test_dir, labels_dict):
                 y_test[x_id] = mappings.index(labels_dict[int(x_id)])
     return X_test, y_test
 
-<<<<<<< HEAD
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
+
+class MyCustomCallback(tf.keras.callbacks.Callback):
+    def __init__(self, X_test, y_test):
+        self.data = X_test
+        self.label = y_test
+        self.result = {"train_acc":[], "test_acc":[], "train_loss":[]}
+
+    def on_train_begin(self, logs={}):
+        self.acc = []
+    def on_epoch_end(self, epoch, logs=None):
+
+        self.acc.append(test(self.model,self.data,self.label))
+        self.result["train_acc"].append(logs["acc"])
+        self.result["test_acc"].append(logs[self.acc[-1])
+        self.result["train_loss"].append(logs["loss"])
+        with open('result.pickle', 'wb') as handle:
+            pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 def main(LENGTH=3 * 44100):
     pwd = os.getcwd()
     data_path = pwd + os.sep + 'data/'
     train_song_ids_file =  pwd + os.sep + 'data/train/song_ids.pkl'
     test_song_ids_file =  pwd + os.sep +'data/test/song_ids.pkl'
     labels_file =  pwd + os.sep +'data/labels.pkl'
-=======
-def get_available_gpus():
-    local_device_protos = device_lib.list_local_devices()
-    return [x.name for x in local_device_protos if x.device_type == 'GPU']
->>>>>>> a53b98e1933be046fdf14e989252af01c157f09a
 
     with open(train_song_ids_file, 'rb') as handle:
         train_ids = pickle.load(handle)
 
-<<<<<<< HEAD
     with open(test_song_ids_file, 'rb') as handle:
         test_ids = pickle.load(handle)
 
     with open(labels_file, 'rb') as handle:
         labels = pickle.load(handle)
 
+    GPUS = get_available_gpus()
+    NUM_GPUS = len(GPUS)
+
+    checkpoint_dir = './training_checkpoints'
+    # Name of the checkpoint files
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
+
+    callbacks = [
+        tf.keras.callbacks.TensorBoard(log_dir='./logs'),
+        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
+                                        save_weights_only=True)
+    ]
+
     train_generator = SpectogramDataLoader(train_ids, labels, data_path + os.sep + 'train/', 
     batch_size=64)
+
     print(train_generator.get_data_dim())
     X_test, y_test = get_test_data(test_dir=data_path + os.sep + 'test/', labels_dict=labels)
     model = get_model()
-    train(model, train_generator)
-=======
-GPUS = get_available_gpus()
-NUM_GPUS = len(GPUS)
 
-checkpoint_dir = './training_checkpoints'
-# Name of the checkpoint files
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
+    if (NUM_GPUS > 1):
+        print("Using GPUS: " + str(NUM_GPUS))
+        model = multi_gpu_model(model, NUM_GPUS)
+    else:
+        print("Only One GPU / CPU :(")
 
-callbacks = [
-    tf.keras.callbacks.TensorBoard(log_dir='./logs'),
-    tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
-                                       save_weights_only=True)
-]
+    train_info, test_acc = train(model=model, train_generator=train_generator, test_data=(X_test, y_test), EPOCHS=10)
 
-train_generator = SpectogramDataLoader(train_ids, labels, data_path + os.sep + 'train/', 
-batch_size=64)
-print(train_generator.get_data_dim())
-X_test, y_test = get_test_data(test_dir=data_path + os.sep + 'test/', labels_dict=labels)
-model = get_model()
-if (NUM_GPUS > 1):
-    print("Using GPUS: " + str(NUM_GPUS))
-    model = multi_gpu_model(model, NUM_GPUS)
-else:
-    print("Only One GPU / CPU :(")
-train(model, train_generator)
->>>>>>> a53b98e1933be046fdf14e989252af01c157f09a
+    train_acc = train_info['acc']
+    x_axis = list(range(1,11))
+
+    train_losses = train_info['loss']
+
+    plt.plot(x_axis, train_acc)
+    plt.title("Train Accuracy over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Train Accuracy (%)")
+    plt.savefig("Train_accuracy.png")
+
+    plt.plot(x_axis, test_acc)
+    plt.title("Test Accuracy over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Test Accuracy (%)")
+    plt.savefig("Train_accuracy.png")
+
+    plt.plot(x_axis, train_losses)
+    plt.title("Train Loss over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.savefig("Train_loss.png")
+
+
+    
 # acc = test(model, X_test, y_test)
 
 # print("Accuracy: %.2f%%" % (acc*100))
