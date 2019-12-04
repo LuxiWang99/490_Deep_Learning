@@ -24,8 +24,10 @@ warnings.resetwarnings()
 def get_model():
     model = Sequential()
     model.add(LSTM(1025, input_shape=(1025, 259), return_sequences=True))
+    model.add(BatchNormalization())
+    model.add(LSTM(1025, input_shape=(1025, 259), return_sequences=True))
     model.add(Flatten())
-    model.add(Dense(4, activation='sigmoid'))
+    model.add(Dense(4, activation='softmax'))
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
@@ -36,6 +38,7 @@ def train(model, train_generator, test_data, EPOCHS=20):
 
 def test(model, X_test, y_test):
     num_corr = 0
+    conf = np.zeros(4, 4)
     for id, source in X_test.items():
         splitted = [X_test[id][i * LENGTH : (i + 1) * LENGTH] for i in range((len(X_test[id]) + LENGTH) // LENGTH)][:-1]
         label = y_test[id]
@@ -45,12 +48,13 @@ def test(model, X_test, y_test):
         prediction = model.predict(np.array(processed))
         counts = np.sum(prediction, 0)
         predict_label = np.argmax(counts)
+        conf[label, predict_label] += 1
         if predict_label == label:
             num_corr += 1
             # print("right! prediction: " + str(predict_label) + ", label: " + str(label))
         # else:
         #     print("wrong! prediction: " + str(predict_label) + ", label: " + str(label))
-    return float(num_corr) / len(X_test)
+    return float(num_corr) / len(X_test), conf
 
 def get_test_data(test_dir, labels_dict):
     X_test = {}
@@ -83,10 +87,12 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
         self.acc = []
 
     def on_epoch_end(self, epoch, logs=None):
-        self.acc.append(test(self.model,self.data,self.label))
+        epoch_test_accuracy, epoch_conf = test(self.model,self.data,self.label)
+        self.acc.append(epoch_test_accuracy)
         self.result["train_acc"].append(logs['accuracy'])
         self.result["test_acc"].append(self.acc[-1])
         self.result["train_loss"].append(logs["loss"])
+        self.result["test_conf"].append(epoch_conf)
         #print("Epoch:")
         #print(epoch)
         #print("logs:")
