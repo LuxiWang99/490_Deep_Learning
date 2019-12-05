@@ -8,7 +8,7 @@ from tensorflow.python.client import device_lib
 from keras.utils import multi_gpu_model
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, LSTM
+from keras.layers import Dense, BatchNormalization, Activation, Flatten, LSTM
 from keras.models import model_from_json
 import pickle 
 import os
@@ -26,6 +26,7 @@ def get_model():
     model.add(LSTM(1025, input_shape=(1025, 259), return_sequences=True))
     model.add(BatchNormalization())
     model.add(LSTM(1025, input_shape=(1025, 259), return_sequences=True))
+    model.add(BatchNormalization())
     model.add(Flatten())
     model.add(Dense(4, activation='softmax'))
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -38,7 +39,7 @@ def train(model, train_generator, test_data, EPOCHS=20):
 
 def test(model, X_test, y_test):
     num_corr = 0
-    conf = np.zeros(4, 4)
+    conf = np.zeros((4, 4))
     for id, source in X_test.items():
         splitted = [X_test[id][i * LENGTH : (i + 1) * LENGTH] for i in range((len(X_test[id]) + LENGTH) // LENGTH)][:-1]
         label = y_test[id]
@@ -81,12 +82,21 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
     def __init__(self, X_test, y_test):
         self.data = X_test
         self.label = y_test
-        self.result = {"train_acc":[], "test_acc":[], "train_loss":[]}
+        self.result = {"train_acc":[], "test_acc":[], "train_loss":[], "test_conf":[]}
 
     def on_train_begin(self, logs={}):
         self.acc = []
 
     def on_epoch_end(self, epoch, logs=None):
+        with open('result.pickle', 'wb') as handle:
+            pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # serialize model to JSON
+        model_json = self.model.to_json()
+        with open("model.json", "w") as json_file:
+            json_file.write(model_json)
+        # serialize weights to HDF5
+        self.model.save_weights("model.h5")
+        print("Saved model to disk")
         epoch_test_accuracy, epoch_conf = test(self.model,self.data,self.label)
         self.acc.append(epoch_test_accuracy)
         self.result["train_acc"].append(logs['accuracy'])
@@ -99,15 +109,6 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
         #print(logs)
         #print("self.acc: ")
         #print(self.acc)
-        with open('result.pickle', 'wb') as handle:
-            pickle.dump(self.result, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        # serialize model to JSON
-        model_json = self.model.to_json()
-        with open("model.json", "w") as json_file:
-            json_file.write(model_json)
-        # serialize weights to HDF5
-        self.model.save_weights("model.h5")
-        print("Saved model to disk")
 
 def main(LENGTH=3 * 44100):
     tf.debugging.set_log_device_placement(True)
